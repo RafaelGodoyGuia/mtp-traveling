@@ -2,7 +2,7 @@
 
 ## 1. Alcance
 
-Esta parte de la memoria describe los patrones de comportamiento asignados a Nicolás en la Fase 1 de Traveling: State, Observer y Command. Se integran con el modelo de reservas existente, manteniendo el Builder de `Reserva` y el contrato `ServicioViaje` utilizado por los servicios simples y los paquetes Composite.
+Esta parte de la memoria describe los patrones de comportamiento asignados en la Fase 1 de Traveling: State, Observer y Command. Se integran con el modelo de reservas existente, manteniendo el Builder de `Reserva` y el contrato `ServicioViaje` utilizado por los servicios simples y los paquetes Composite.
 
 ## 2. State: ciclo de vida de una reserva
 
@@ -96,18 +96,3 @@ Define el esqueleto de un algoritmo en una superclase y deja algunos pasos a las
 
 Permite añadir operaciones a una estructura de objetos mediante visitantes. Aunque Traveling contiene paquetes Composite, las operaciones requeridas (precio, mostrar y cancelar) ya forman parte del contrato uniforme `ServicioViaje`. No se necesitan operaciones externas complejas sobre una jerarquía estable que justifiquen Visitor.
 
-## 7. Pruebas realizadas
-
-La clase `PatronesComportamientoTest` comprueba:
-
-- Transiciones válidas e inválidas de los cinco estados.
-- Confirmación directa y cancelación desde el estado Creada.
-- Notificación de cambios a los tres observadores.
-- Actualización de puntos únicamente al confirmar.
-- Suscripción y eliminación de observadores.
-- Ejecución inmediata, encolado e historial de comandos.
-- Validación de las operaciones encapsuladas mediante State.
-
-## 8. Decisiones y posibles mejoras
-
-La reserva conserva la lógica de estado y la lista de observadores, pero depende de abstracciones (`EstadoReserva` y `ObservadorReserva`) y no de implementaciones concretas. Los comandos tampoco conocen la interfaz que los invoca. Para una evolución posterior se podría persistir el historial de comandos y los eventos, añadir identificadores de correlación o definir políticas de recuperación ante fallos de observadores. Esas ampliaciones no son necesarias para los requisitos actuales de la Fase 1.

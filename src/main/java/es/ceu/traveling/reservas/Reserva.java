@@ -1,7 +1,16 @@
 package es.ceu.traveling.reservas;
 
+import es.ceu.traveling.reservas.estado.EstadoReserva;
+import es.ceu.traveling.reservas.estado.EstadoCreada;
+import es.ceu.traveling.reservas.estado.EstadoCancelada;
+import es.ceu.traveling.reservas.eventos.ObservadorReserva;
+import es.ceu.traveling.reservas.eventos.EventoReserva;
+import es.ceu.traveling.reservas.eventos.TipoEventoReserva;
+
+import java.time.Instant;
 import es.ceu.traveling.dominio.Cliente;
 import es.ceu.traveling.dominio.Pago;
+import es.ceu.traveling.reservas.estado.EstadoCancelada;
 import es.ceu.traveling.servicios.ServicioViaje;
 
 import java.math.BigDecimal;
@@ -28,6 +37,8 @@ public final class Reserva {
     private final List<String> solicitudesEspeciales;
     private final String seguro;
     private final Pago pago;
+    private EstadoReserva estado = new EstadoCreada();
+    private final List<ObservadorReserva> observadores = new ArrayList<>();
 
     private Reserva(Builder b) {
         cliente = b.cliente;
@@ -63,17 +74,99 @@ public final class Reserva {
         return servicio.calcularPrecio();
     }
 
+    public String getEstado() {
+        return estado.nombre();
+    }
+
+    public void pasarAPendientePago() {
+        estado.pasarAPendientePago(this);
+    }
+
+    public void confirmar() {
+        estado.confirmar(this);
+    }
+
+    public void completar() {
+        estado.completar(this);
+    }
+
     public void cancelar() {
-        servicio.cancelar();
+        estado.cancelar(this);
     }
 
     public boolean isCancelada() {
-        return servicio.isCancelado();
+        return estado instanceof EstadoCancelada || servicio.isCancelado();
     }
 
     public String mostrar() {
         return "Reserva " + id + " de " + cliente.nombre() + " a " + destino + " — " + calcularPrecio() + " €\n"
                 + servicio.mostrar("  ");
+    }
+
+    // Métodos utilizados por las clases del patrón State
+
+    public void cambiarEstadoInterno(EstadoReserva nuevoEstado) {
+        Objects.requireNonNull(nuevoEstado, "nuevoEstado");
+
+        String anterior = estado.nombre();
+        estado = nuevoEstado;
+
+        TipoEventoReserva tipo = switch (nuevoEstado.nombre()) {
+            case "Creada" -> TipoEventoReserva.CREADA;
+            case "Pendiente de pago" -> TipoEventoReserva.PENDIENTE_PAGO;
+            case "Confirmada" -> TipoEventoReserva.CONFIRMADA;
+            case "Completada" -> TipoEventoReserva.COMPLETADA;
+            case "Cancelada" -> TipoEventoReserva.CANCELADA;
+            default -> throw new IllegalStateException("Estado desconocido");
+        };
+
+        notificarObservadores(new EventoReserva(
+                this,
+                tipo,
+                anterior,
+                nuevoEstado.nombre(),
+                Instant.now()
+        ));
+    }
+
+    public void cancelarServicioInterno() {
+        servicio.cancelar();
+    }
+
+    // Patrón Observer
+
+    public synchronized void agregarObservador(ObservadorReserva observador) {
+        Objects.requireNonNull(observador, "observador");
+
+        if (!observadores.contains(observador)) {
+            observadores.add(observador);
+        }
+    }
+
+    public synchronized void quitarObservador(ObservadorReserva observador) {
+        observadores.remove(observador);
+    }
+
+    private void notificarObservadores(EventoReserva evento) {
+        List<ObservadorReserva> copia;
+
+        synchronized (this) {
+            copia = List.copyOf(observadores);
+        }
+
+        for (ObservadorReserva observador : copia) {
+            observador.actualizar(evento);
+        }
+    }
+
+    public void publicarCreacion() {
+        notificarObservadores(new EventoReserva(
+                this,
+                TipoEventoReserva.CREADA,
+                null,
+                estado.nombre(),
+                Instant.now()
+        ));
     }
 
     public static final class Builder {

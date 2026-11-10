@@ -1,6 +1,9 @@
 package es.ceu.traveling.adaptadores;
 
 import es.ceu.traveling.servicios.ServicioViaje;
+
+import java.math.BigDecimal;
+
 // Assume HotelExternoAPI is a legacy class provided by a third party
 import com.terceros.api.HotelExternoAPI;
 
@@ -14,7 +17,7 @@ public class HotelExternoAdapter implements ServicioViaje {
     }
 
     @Override
-    public double getPrecio() {
+    public BigDecimal calcularPrecio() {
         // Translating the external API's logic to our standard interface
         return apiExterna.findRooms(fechaReserva).getBaseRate();
     }

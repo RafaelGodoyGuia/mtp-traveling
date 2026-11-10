@@ -1,6 +1,6 @@
 package es.ceu.traveling.estrategias;
 
-public class PrecioEmpresas implements EstrategiaPrecio {
+public class PrecioEmpresa implements EstrategiaPrecio {
     private static final double DESCUENTO_CORPORATIVO = 0.85; // 15% discount
 
     @Override

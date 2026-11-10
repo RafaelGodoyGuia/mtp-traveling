@@ -1,5 +1,7 @@
 package es.ceu.traveling.decoradores;
 
+import java.math.BigDecimal;
+
 import es.ceu.traveling.servicios.ServicioViaje;
 
 public abstract class ServicioAdicionalDecorator implements ServicioViaje {
@@ -10,12 +12,32 @@ public abstract class ServicioAdicionalDecorator implements ServicioViaje {
     }
 
     @Override
-    public double getPrecio() {
-        return servicioEnvuelto.getPrecio();
+    public BigDecimal calcularPrecio() {
+        return servicioEnvuelto.calcularPrecio();
     }
 
     @Override
-    public String getDescripcion() {
-        return servicioEnvuelto.getDescripcion();
+    public String mostrar() {
+        return servicioEnvuelto.mostrar();
+    }
+
+    @Override
+    public String getDestino(){
+        return servicioEnvuelto.getDestino();
+    }
+
+    @Override
+    public void cancelar(){
+        servicioEnvuelto.cancelar();
+    }
+
+    @Override
+    public boolean isCancelado(){
+        return servicioEnvuelto.isCancelado();
+    }
+
+    @Override
+    public String getNombre(){
+        return servicioEnvuelto.getNombre();
     }
 }
